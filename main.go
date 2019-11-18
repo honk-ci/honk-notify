@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"golang.org/x/oauth2"
 
 	"github.com/honk-ci/honk-notify/pkg/github"
 	"github.com/honk-ci/honk-notify/pkg/honk"
@@ -12,6 +15,15 @@ import (
 )
 
 func main() {
+	token := os.Getenv("GITHUB_AUTH_TOKEN")
+	if token == "" {
+		log.Fatal("Unauthorized: No token present")
+	}
+
+	ctx := context.Background()
+	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
+	tc := oauth2.NewClient(ctx, ts)
+
 	c := make(chan string)
 
 	go twitter.WatchTwitter([]string{
@@ -20,13 +32,10 @@ func main() {
 		"kcsna2019",
 		"kubekhan",
 	}, c)
-	go github.WatchGithub([]string{
-		"kubernetes/kubernetes",
-		"kubernetes/test-infra",
-		"kubernetes/release",
-		"kubernetes/sig-release",
-		"kubernetes/community",
-		"kubernetes-sigs/contributor-playground",
+	go github.WatchGithub(tc, []string{
+		"kubernetes",
+		"kubernetes-sigs",
+		"honk-ci",
 	}, c)
 
 	go func() {

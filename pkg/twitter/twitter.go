@@ -2,7 +2,6 @@ package twitter
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -41,7 +40,7 @@ func WatchTwitter(topics []string, c chan string) {
 		c <- "Twitter: " + tweet.Text
 	}
 
-	fmt.Println("Starting Stream...")
+	log.Println("Now watching Twitter...")
 
 	// FILTER
 	filterParams := &twitter.StreamFilterParams{
@@ -60,6 +59,6 @@ func WatchTwitter(topics []string, c chan string) {
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 	log.Println(<-ch)
 
-	fmt.Println("Stopping Twitter Watch...")
+	log.Println("Stopping Twitter Watch...")
 	stream.Stop()
 }
