@@ -1,2 +1,3 @@
 hack/real.env
 vendor/
+.DS_Store

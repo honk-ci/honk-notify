@@ -17,6 +17,8 @@ func main() {
 	go twitter.WatchTwitter([]string{
 		"kubernetes honk",
 		"kubecon honk",
+		"kcsna2019",
+		"kubekhan",
 	}, c)
 	go github.WatchGithub([]string{
 		"kubernetes/kubernetes",
@@ -24,6 +26,7 @@ func main() {
 		"kubernetes/release",
 		"kubernetes/sig-release",
 		"kubernetes/community",
+		"kubernetes-sigs/contributor-playground",
 	}, c)
 
 	go func() {

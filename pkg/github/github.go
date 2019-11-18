@@ -7,10 +7,12 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/google/go-github/github"
 )
 
+// FetchComments looks at a specific repo and returns a list of a bunch of comments
 func FetchComments(repo string) []*github.RepositoryComment {
 	s := strings.Split(repo, "/")
 	client := github.NewClient(nil)
@@ -19,6 +21,7 @@ func FetchComments(repo string) []*github.RepositoryComment {
 	return comments
 }
 
+// WatchGithub looks at a list of repos and watches for a honking comment and triggers an event
 func WatchGithub(repos []string, c chan string) {
 	latestComment := make(map[string]*github.RepositoryComment)
 	go func() {
@@ -34,6 +37,7 @@ func WatchGithub(repos []string, c chan string) {
 					}
 				}
 			}
+			time.Sleep(5 * time.Second)
 		}
 	}()
 	// Wait for SIGINT and SIGTERM (HIT CTRL-C)
