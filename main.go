@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -24,9 +25,10 @@ func main() {
 	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
 	tc := oauth2.NewClient(ctx, ts)
 
-	c := make(chan string)
+	c := make(chan interface{})
 
 	go twitter.WatchTwitter([]string{
+		"michigan",
 		"kubernetes honk",
 		"kubecon honk",
 		"kcsna2019",
@@ -41,7 +43,7 @@ func main() {
 	go func() {
 		for {
 			val := <-c
-			log.Println(val)
+			log.Println(fmt.Sprintf("%v", val))
 			honk.Honk()
 		}
 	}()

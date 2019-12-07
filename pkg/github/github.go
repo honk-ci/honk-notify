@@ -22,7 +22,7 @@ func FetchComments(client *http.Client, org string) []*github.Event {
 }
 
 // WatchGithub looks at a list of orgs and watches for a honking comment and triggers an event
-func WatchGithub(client *http.Client, orgs []string, c chan string) {
+func WatchGithub(client *http.Client, orgs []string, c chan interface{}) {
 	latestComment := make(map[string]*github.Event)
 	go func() {
 		log.Println("Now watching GitHub...")
@@ -35,7 +35,7 @@ func WatchGithub(client *http.Client, orgs []string, c chan string) {
 						comment, _ := event.ParsePayload()
 						body := comment.(*github.IssueCommentEvent).GetComment().GetBody()
 						if strings.Contains(body, "/honk") {
-							c <- "GitHub: " + body
+							c <- comment.(*github.IssueCommentEvent)
 						}
 
 					}

@@ -13,7 +13,7 @@ import (
 )
 
 // WatchTwitter takes a channel, and honks
-func WatchTwitter(topics []string, c chan string) {
+func WatchTwitter(topics []string, c chan interface{}) {
 	flags := flag.NewFlagSet("user-auth", flag.ExitOnError)
 	consumerKey := flags.String("consumer-key", "", "Twitter Consumer Key")
 	consumerSecret := flags.String("consumer-secret", "", "Twitter Consumer Secret")
@@ -37,7 +37,7 @@ func WatchTwitter(topics []string, c chan string) {
 	// Convenience Demux demultiplexed stream messages
 	demux := twitter.NewSwitchDemux()
 	demux.Tweet = func(tweet *twitter.Tweet) {
-		c <- "Twitter: " + tweet.Text
+		c <- tweet
 	}
 
 	log.Println("Now watching Twitter...")
