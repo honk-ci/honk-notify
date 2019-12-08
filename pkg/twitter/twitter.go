@@ -3,13 +3,15 @@ package twitter
 import (
 	"flag"
 	"log"
+	"net/url"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
+	"time"
 
+	"github.com/ChimeraCoder/anaconda"
 	"github.com/coreos/pkg/flagutil"
-	"github.com/dghubble/go-twitter/twitter"
-	"github.com/dghubble/oauth1"
 )
 
 // WatchTwitter takes a channel, and honks
@@ -26,33 +28,24 @@ func WatchTwitter(topics []string, c chan interface{}) {
 		log.Fatal("Consumer key/secret and Access token/secret required")
 	}
 
-	config := oauth1.NewConfig(*consumerKey, *consumerSecret)
-	token := oauth1.NewToken(*accessToken, *accessSecret)
-	// OAuth1 http.Client will automatically authorize Requests
-	httpClient := config.Client(oauth1.NoContext, token)
+	api := anaconda.NewTwitterApiWithCredentials(*accessToken, *accessSecret, *consumerKey, *consumerSecret)
+	streamValues := url.Values{}
+	streamValues.Set("track", strings.Join(topics, ","))
+	streamValues.Set("stall_warnings", "true")
+	log.Println("Starting Stream...")
+	s := api.PublicStreamFilter(streamValues)
 
-	// Twitter Client
-	client := twitter.NewClient(httpClient)
-
-	// Convenience Demux demultiplexed stream messages
-	demux := twitter.NewSwitchDemux()
-	demux.Tweet = func(tweet *twitter.Tweet) {
-		c <- tweet
-	}
+	go func() {
+		for t := range s.C {
+			switch v := t.(type) {
+			case anaconda.Tweet:
+				c <- v
+			}
+			time.Sleep(1)
+		}
+	}()
 
 	log.Println("Now watching Twitter...")
-
-	// FILTER
-	filterParams := &twitter.StreamFilterParams{
-		Track:         topics,
-		StallWarnings: twitter.Bool(true),
-	}
-	stream, err := client.Streams.Filter(filterParams)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	go demux.HandleChan(stream.Messages)
 
 	// Wait for SIGINT and SIGTERM (HIT CTRL-C)
 	ch := make(chan os.Signal)
@@ -60,5 +53,4 @@ func WatchTwitter(topics []string, c chan interface{}) {
 	log.Println(<-ch)
 
 	log.Println("Stopping Twitter Watch...")
-	stream.Stop()
 }
